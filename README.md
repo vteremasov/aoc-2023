@@ -1,3 +1,7 @@
 ### AoC on Zig lang
 
-Zig compiler 0.11.0
+`zig` compiler v0.11.0
+
+##### Build and run specific day
+`./build.sh solve day1`
+

@@ -9,7 +9,6 @@ const Numbers = enum { one, two, three, four, five, six, seven, eight, nine };
 var numbers = &[_][]const u8{ "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
 
 pub fn aoc_day_1() !i64 {
-    std.debug.print("start reading file\n", .{});
     const file = std.fs.cwd().openFile("input/day_1_input", .{}) catch |err| label: {
         std.debug.print("unable to open file: {}\n", .{err});
         const stderr = std.io.getStdErr();
@@ -55,6 +54,7 @@ pub fn aoc_day_1() !i64 {
     }
 
     var pairs = ArrayList([2]u8).init(allocator);
+    defer pairs.deinit();
     for (allNumbers.items) |lineNumbers| {
         var firstIndex: i32 = @as(i32, std.math.maxInt(i32));
         var first: u8 = undefined;
