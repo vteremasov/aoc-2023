@@ -1,6 +1,8 @@
 const std = @import("std");
 const day1 = @import("./solutions/day1.zig");
 const day2 = @import("./solutions/day2.zig");
+const day3 = @import("./solutions/day3.zig");
+
 const print = std.debug.print;
 
 const Commands = enum {
@@ -28,11 +30,18 @@ pub fn main() !void {
             const dayArg = args[2];
             if (std.mem.eql(u8, dayArg, "day1")) {
                 var result = try day1.aoc_day_1();
-                std.debug.print("Day 1 result: {}\n", .{result});
+                print("Day 1 result: {}\n", .{result});
+                return;
             }
             if (std.mem.eql(u8, dayArg, "day2")) {
                 var result = try day2.aocDay2();
-                std.debug.print("Day 2 result: {}\n", .{result});
+                print("Day 2 result: {}\n", .{result});
+                return;
+            }
+            if (std.mem.eql(u8, dayArg, "day3")) {
+                var result = try day3.aocDay3();
+                print("Day 3 result: {}\n", .{result});
+                return;
             } else {
                 @panic(try std.fmt.allocPrint(gpa, "Error: `{s}` day not found", .{dayArg}));
             }
