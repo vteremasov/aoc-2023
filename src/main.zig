@@ -3,6 +3,7 @@ const day1 = @import("./solutions/day1.zig");
 const day2 = @import("./solutions/day2.zig");
 const day3 = @import("./solutions/day3.zig");
 const day4 = @import("./solutions/day4.zig");
+const day5 = @import("./solutions/day5.zig");
 
 const print = std.debug.print;
 
@@ -47,6 +48,11 @@ pub fn main() !void {
             if (std.mem.eql(u8, dayArg, "day4")) {
                 var result = try day4.aocDay4();
                 print("Day 4 result: {}\n", .{result});
+                return;
+            }
+            if (std.mem.eql(u8, dayArg, "day5")) {
+                var result = try day5.aocDay5();
+                print("Day 5 result: {}\n", .{result});
                 return;
             } else {
                 @panic(try std.fmt.allocPrint(gpa, "Error: `{s}` day not found", .{dayArg}));
