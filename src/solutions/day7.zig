@@ -10,6 +10,8 @@ var aa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const allocator = aa.allocator();
 
 pub fn compU8(ch1: u8, ch2: u8) bool {
+    if (ch1 == 'J') return false;
+    if (ch2 == 'J') return true;
     const ch1D = ascii.isDigit(ch1);
     const ch2D = ascii.isDigit(ch2);
     if (ch1D and ch2D) {
@@ -28,8 +30,7 @@ pub fn compU8(ch1: u8, ch2: u8) bool {
         'A' => if (ch2 == 'A') return false,
         'K' => if (ch2 == 'A') return false,
         'Q' => if (ch2 == 'A' or ch2 == 'K') return false,
-        'J' => if (ch2 == 'A' or ch2 == 'K' or ch2 == 'Q') return false,
-        'T' => if (ch2 == 'A' or ch2 == 'K' or ch2 == 'J' or ch2 == 'Q') return false,
+        'T' => if (ch2 == 'A' or ch2 == 'K' or ch2 == 'Q') return false,
         else => return true,
     }
 
@@ -41,6 +42,7 @@ test "compU8" {
     try std.testing.expect(compU8('2', '4') == false);
     try std.testing.expect(compU8('A', 'K') == true);
     try std.testing.expect(compU8('J', 'K') == false);
+    try std.testing.expect(compU8('J', '2') == false);
     try std.testing.expect(compU8('T', '9') == true);
 }
 
@@ -52,15 +54,37 @@ const Hand = struct {
     pub fn init(cards: []const u8, bid: i64) !Hand {
         var cache = HM(u8, u8).init(allocator);
 
+        var jokerCounter: u8 = 0;
+        var maxV: u8 = 0;
+        var maxK: u8 = undefined;
         // there is always 5 of them
         for (0..5) |i| {
-            var c = cache.get(cards[i]);
-
-            if (c) |ca| {
-                try cache.put(cards[i], ca + 1);
+            if (cards[i] == 'J') {
+                jokerCounter += 1;
             } else {
-                try cache.put(cards[i], 1);
+                var c = cache.get(cards[i]);
+
+                if (c) |ca| {
+                    const v = ca + 1;
+                    if (v > maxV) {
+                        maxV = v;
+                        maxK = cards[i];
+                    }
+                    try cache.put(cards[i], v);
+                } else {
+                    if (maxV == 0) {
+                        maxV = 1;
+                        maxK = cards[i];
+                    }
+                    try cache.put(cards[i], 1);
+                }
             }
+        }
+
+        if (jokerCounter == 5) {
+            try cache.put('J', 5);
+        } else {
+            try cache.put(maxK, maxV + jokerCounter);
         }
 
         return Hand{
@@ -116,15 +140,22 @@ test "compHands" {
     const h3 = try Hand.init("QQQJA", 300);
     const h4 = try Hand.init("555A5", 300);
     const h5 = try Hand.init("KQQ8K", 300);
+    const h6 = try Hand.init("JJJJJ", 300);
+    const h7 = try Hand.init("AAAJA", 300);
+    const h8 = try Hand.init("JAJ43", 300);
+    const h9 = try Hand.init("224Q8", 300);
 
     try std.testing.expect(compHands({}, h2, h1) == false);
     try std.testing.expect(compHands({}, h2, h2) == false);
     try std.testing.expect(compHands({}, h2, h3) == true);
     try std.testing.expect(compHands({}, h3, h2) == false);
     try std.testing.expect(compHands({}, h5, h4) == true);
+    try std.testing.expect(compHands({}, h4, h3) == true);
+    try std.testing.expect(compHands({}, h6, h7) == true);
+    try std.testing.expect(compHands({}, h9, h8) == true);
 }
 
-pub fn solution1(data: ArrayList(ArrayList(u8))) !i64 {
+pub fn solution(data: ArrayList(ArrayList(u8))) !i64 {
     var hands = ArrayList(Hand).init(allocator);
     for (data.items) |line| {
         var lineIt = mem.splitScalar(u8, line.items, ' ');
@@ -142,14 +173,11 @@ pub fn solution1(data: ArrayList(ArrayList(u8))) !i64 {
     var result: i64 = 0;
 
     for (sorted, 0..) |s, i| {
-        print("{s} {}\n", .{ s.cards, s.bid });
         result += (@as(i64, @intCast(i)) + 1) * s.bid;
     }
 
     return result;
 }
-
-// not 246629977
 
 pub fn aocDay7() !i64 {
     const file = fs.cwd().openFile("input/day_7_input", .{}) catch |err| label: {
@@ -172,7 +200,7 @@ pub fn aocDay7() !i64 {
         try data.append(value);
     }
 
-    const result1 = try solution1(data);
+    const result1 = try solution(data);
 
     return result1;
 }
