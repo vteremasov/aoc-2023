@@ -8,7 +8,7 @@ pub fn getNumbersFromSlise(comptime T: type, slice: []const u8, allocator: Alloc
     var result = ArrayList(T).init(allocator);
     var start: i32 = -1;
     for (slice, 0..) |c, i| {
-        if (ascii.isDigit(c)) {
+        if (ascii.isDigit(c) or c == '-') {
             if (start == -1) start = @intCast(i);
         } else {
             if (start != -1) {
@@ -34,9 +34,10 @@ test "getNumbersFromSlise" {
     try std.testing.expect(res1.items.len == 3);
     try std.testing.expect(res1.items[2] == 3);
     try std.testing.expect(res1.items[0] == 1);
-    var mid = "   123 321";
+    var mid = "   -123 321";
     const res2 = try getNumbersFromSlise(i64, mid, std.testing.allocator);
     defer res2.deinit();
     try std.testing.expect(res2.items.len == 2);
     try std.testing.expect(res2.items[1] == 321);
+    try std.testing.expect(res2.items[0] == -123);
 }
