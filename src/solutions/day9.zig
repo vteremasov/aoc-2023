@@ -1,12 +1,8 @@
 const std = @import("std");
 const utils = @import("../utils/utils.zig");
-const fmt = std.fmt;
-const ascii = std.ascii;
 const ArrayList = std.ArrayList;
 const print = std.debug.print;
 const fs = std.fs;
-const mem = std.mem;
-const HM = std.AutoArrayHashMap;
 var aa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const allocator = aa.allocator();
 
@@ -55,7 +51,7 @@ test "getDiffs" {
     try std.testing.expect(res.items[4] == 6);
 }
 
-pub fn getDiffSec(data: ArrayList(i64)) !ArrayList(i64) {
+pub fn getDiffSec(data: ArrayList(i64), comptime get: fn (l: []i64) i64) !ArrayList(i64) {
     var result = ArrayList(i64).init(allocator);
     var diffs = ArrayList(ArrayList(i64)).init(allocator);
     defer diffs.deinit();
@@ -73,7 +69,7 @@ pub fn getDiffSec(data: ArrayList(i64)) !ArrayList(i64) {
     }
 
     for (diffs.items) |d| {
-        try result.append(d.items[d.items.len - 1]);
+        try result.append(get(d.items));
     }
 
     return result;
@@ -104,6 +100,22 @@ pub fn sum(data: []i64) i64 {
     return result;
 }
 
+pub fn sub(data: []i64) i64 {
+    var result: i64 = 0;
+    var counter: i64 = @intCast(data.len - 1);
+
+    while (counter >= 0) {
+        result = data[@as(usize, @intCast(counter))] - result;
+        counter -= 1;
+    }
+
+    return result;
+}
+
+pub fn head(l: []i64) i64 {
+    return l[l.len - 1];
+}
+
 pub fn solution1(data: ArrayList(ArrayList(u8))) !i64 {
     var nums = try parseNums(data);
     var history = ArrayList(i64).init(allocator);
@@ -111,9 +123,29 @@ pub fn solution1(data: ArrayList(ArrayList(u8))) !i64 {
     defer history.deinit();
 
     for (nums.items) |row| {
-        var sec = try getDiffSec(row);
+        var sec = try getDiffSec(row, head);
         defer sec.deinit();
         var h = sum(sec.items);
+        try history.append(h);
+    }
+
+    return sum(history.items);
+}
+
+pub fn tail(l: []i64) i64 {
+    return l[0];
+}
+
+pub fn solution2(data: ArrayList(ArrayList(u8))) !i64 {
+    var nums = try parseNums(data);
+    var history = ArrayList(i64).init(allocator);
+    defer nums.deinit();
+    defer history.deinit();
+
+    for (nums.items) |row| {
+        var sec = try getDiffSec(row, tail);
+        defer sec.deinit();
+        var h = sub(sec.items);
         try history.append(h);
     }
 
@@ -141,5 +173,5 @@ pub fn aocDay9() !i64 {
         try data.append(value);
     }
 
-    return try solution1(data);
+    return try solution2(data);
 }

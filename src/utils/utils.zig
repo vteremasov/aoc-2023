@@ -12,6 +12,10 @@ pub fn getNumbersFromSlise(comptime T: type, slice: []const u8, allocator: Alloc
             if (start == -1) start = @intCast(i);
         } else {
             if (start != -1) {
+                if (slice[i - 1] == '-') {
+                    start = -1;
+                    continue;
+                }
                 const n = try fmt.parseInt(T, slice[@intCast(start)..i], 10);
                 try result.append(n);
                 start = -1;
@@ -40,4 +44,8 @@ test "getNumbersFromSlise" {
     try std.testing.expect(res2.items.len == 2);
     try std.testing.expect(res2.items[1] == 321);
     try std.testing.expect(res2.items[0] == -123);
+    var symb = "   - 4";
+    const res3 = try getNumbersFromSlise(i64, symb, std.testing.allocator);
+    defer res3.deinit();
+    try std.testing.expect(res3.items.len == 1);
 }
