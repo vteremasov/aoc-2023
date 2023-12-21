@@ -76,3 +76,11 @@ pub fn getData(path: []const u8, allocator: Allocator) !Data {
 
     return data;
 }
+
+pub fn all(comptime T: type, data: []const T, comptime pred: fn (d: T) bool) bool {
+    for (data) |item| {
+        if (!pred(item)) return false;
+    }
+
+    return true;
+}
